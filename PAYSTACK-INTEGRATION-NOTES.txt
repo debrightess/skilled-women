@@ -1,0 +1,37 @@
+PAYSTACK INTEGRATION NOTES
+==========================
+
+Files changed/added:
+1. index.html
+   - Homepage donation form now has required donor fields and submit handling.
+   - Paystack InlineJS v2 CDN script has been added.
+   - js/paystack-donation.js has been added below js/main.js.
+
+2. donate.html
+   - Main donation page form now has required donor fields and submit handling.
+   - Cause, phone, message, preset amount and custom amount are passed into Paystack metadata.
+   - Paystack InlineJS v2 CDN script has been added.
+   - js/paystack-donation.js has been added below js/main.js.
+
+3. js/paystack-donation.js
+   - Handles validation.
+   - Converts Naira to Kobo for Paystack.
+   - Opens the Paystack secure checkout popup.
+   - Displays success, cancelled and error messages.
+
+IMPORTANT BEFORE GOING LIVE
+===========================
+
+Open js/paystack-donation.js and replace this line:
+
+const PAYSTACK_PUBLIC_KEY = "pk_test_REPLACE_WITH_YOUR_PAYSTACK_PUBLIC_KEY";
+
+with your real Paystack public key, for example:
+
+const PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxxxxxxxxxxx";
+
+Use pk_test_... while testing.
+Use pk_live_... only when the Paystack account is approved and ready for live donations.
+
+Recommended production step:
+For proper accounting and fraud control, add server-side payment verification using Paystack's Verify Transaction endpoint or webhooks. This front-end integration opens checkout and captures the payment reference, but final confirmation should be verified from the server or Paystack dashboard.
