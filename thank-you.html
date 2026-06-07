@@ -7,17 +7,35 @@
     <link href="img/favicon.ico" rel="icon" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Saira:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Saira:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
     <link href="css/bootstrap.min.css" rel="stylesheet" />
     <link href="css/style.css" rel="stylesheet" />
   </head>
   <body>
     <div class="container-fluid fixed-top px-0 bg-dark shadow">
       <nav class="navbar navbar-expand-lg navbar-dark py-lg-0 px-lg-5">
-        <a href="index.html" class="navbar-brand ms-4 ms-lg-0"><h1 class="fw-bold text-primary m-0">Skilled Woman Foundation</h1></a>
-        <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"><span class="navbar-toggler-icon"></span></button>
+        <a href="index.html" class="navbar-brand ms-4 ms-lg-0"
+          ><h1 class="fw-bold text-primary m-0">Skilled Woman Foundation</h1></a
+        >
+        <button
+          type="button"
+          class="navbar-toggler me-4"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarCollapse"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <div class="navbar-nav ms-auto p-4 p-lg-0">
             <a href="index.html" class="nav-item nav-link">Home</a>
@@ -27,14 +45,21 @@
             <a href="testimonial.html" class="nav-item nav-link">Stories</a>
             <a href="contact.html" class="nav-item nav-link">Contact</a>
           </div>
-          <div class="d-none d-lg-flex ms-2"><a class="btn btn-primary py-2 px-3" href="donate.html">Donate Again</a></div>
+          <div class="d-none d-lg-flex ms-2">
+            <a class="btn btn-primary py-2 px-3" href="donate.html"
+              >Donate Again</a
+            >
+          </div>
         </div>
       </nav>
     </div>
     <div class="container-fluid page-header mb-5">
       <div class="container text-center">
         <h1 class="display-4 text-white mb-4">Thank You</h1>
-        <p class="text-white-50 fs-5 mb-0">Your donation helps a woman gain skills, confidence, and a pathway to independence.</p>
+        <p class="text-white-50 fs-5 mb-0">
+          Your donation helps a woman gain skills, confidence, and a pathway to
+          independence.
+        </p>
       </div>
     </div>
     <div class="container-xxl py-5">
@@ -44,18 +69,29 @@
             <div class="bg-light rounded p-5">
               <i class="fa fa-check-circle display-1 text-primary mb-4"></i>
               <h2 class="mb-3">Donation Received</h2>
-              <p class="mb-4">Thank you for supporting The Strength of a Skilled Woman Foundation. A payment receipt will be sent by Paystack to the email address you provided.</p>
-              <p class="text-muted mb-4">Reference: <strong id="paymentReference">Processing...</strong></p>
-              <a href="index.html" class="btn btn-primary py-2 px-4 me-2">Back to Home</a>
-              <a href="donate.html" class="btn btn-outline-primary py-2 px-4">Donate Again</a>
+              <p class="mb-4">
+                Thank you for supporting The Strength of a Skilled Woman
+                Foundation. A payment receipt will be sent by Paystack to the
+                email address you provided.
+              </p>
+              <p class="text-muted mb-4">
+                Reference: <strong id="paymentReference">Processing...</strong>
+              </p>
+              <a href="index.html" class="btn btn-primary py-2 px-4 me-2"
+                >Back to Home</a
+              >
+              <a href="donate.html" class="btn btn-outline-primary py-2 px-4"
+                >Donate Again</a
+              >
             </div>
           </div>
         </div>
       </div>
     </div>
     <script>
-      const params = new URLSearchParams(window.location.search);
-      document.getElementById('paymentReference').textContent = params.get('reference') || 'Confirmed by Paystack';
+      const params = new URLSearchParams(window.location.search)
+      document.getElementById('paymentReference').textContent =
+        params.get('reference') || 'Confirmed by Paystack'
     </script>
   </body>
 </html>
