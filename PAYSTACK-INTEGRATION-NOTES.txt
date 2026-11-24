@@ -18,5 +18,7 @@ Verify every donation through the Paystack dashboard. Add server-side verificati
 or verified webhooks before issuing authoritative receipts automatically.
 The thank-you page does not claim payment is verified.
 
-The old duplicate main.js and paystack-donation.js handlers have been removed.
+Only js/site.js and js/paystack-donation.js are loaded by the new pages.
+The unused legacy js/main.js and root paystack-donation.js files are retained
+for compatibility and are not part of the active donation flow.
 Do not reintroduce parallel payment handlers.
