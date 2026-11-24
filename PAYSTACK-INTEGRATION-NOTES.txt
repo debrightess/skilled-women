@@ -1,37 +1,22 @@
-PAYSTACK INTEGRATION NOTES
-==========================
+DONATION SETUP
 
-Files changed/added:
-1. index.html
-   - Homepage donation form now has required donor fields and submit handling.
-   - Paystack InlineJS v2 CDN script has been added.
-   - js/paystack-donation.js has been added below js/main.js.
+The active website uses only js/paystack-donation.js for card checkout.
+Card donations are disabled until the approved foundation's live PUBLIC key is
+configured in PAYSTACK_PUBLIC_KEY in that file. Bank transfers remain available.
+Never commit a Paystack secret key.
 
-2. donate.html
-   - Main donation page form now has required donor fields and submit handling.
-   - Cause, phone, message, preset amount and custom amount are passed into Paystack metadata.
-   - Paystack InlineJS v2 CDN script has been added.
-   - js/paystack-donation.js has been added below js/main.js.
+The checkout script loads Paystack InlineJS v2 only when a configured checkout
+is requested. The form validates donor details and amounts, converts naira to
+kobo, and passes the selected programme and donor information in metadata.
+The submit button stays disabled until checkout is cancelled, succeeds or fails.
 
-3. js/paystack-donation.js
-   - Handles validation.
-   - Converts Naira to Kobo for Paystack.
-   - Opens the Paystack secure checkout popup.
-   - Displays success, cancelled and error messages.
+For sandbox testing, use an isolated development copy with the test public key
+and an appropriately adjusted key check; never accept test payments as live gifts.
 
-IMPORTANT BEFORE GOING LIVE
-===========================
+A client-side callback or thank-you URL is not confirmation of a settled payment.
+Verify every donation through the Paystack dashboard. Add server-side verification
+or verified webhooks before issuing authoritative receipts automatically.
+The thank-you page does not claim payment is verified.
 
-Open js/paystack-donation.js and replace this line:
-
-const PAYSTACK_PUBLIC_KEY = "pk_test_REPLACE_WITH_YOUR_PAYSTACK_PUBLIC_KEY";
-
-with your real Paystack public key, for example:
-
-const PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxxxxxxxxxxx";
-
-Use pk_test_... while testing.
-Use pk_live_... only when the Paystack account is approved and ready for live donations.
-
-Recommended production step:
-For proper accounting and fraud control, add server-side payment verification using Paystack's Verify Transaction endpoint or webhooks. This front-end integration opens checkout and captures the payment reference, but final confirmation should be verified from the server or Paystack dashboard.
+The old duplicate main.js and paystack-donation.js handlers have been removed.
+Do not reintroduce parallel payment handlers.
