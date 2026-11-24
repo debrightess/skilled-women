@@ -1,166 +1,86 @@
-/*
- * Paystack donation integration for The Strength of a Skilled Woman Foundation.
- * IMPORTANT: Replace PAYSTACK_PUBLIC_KEY with the foundation's live public key.
- * Example: const PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxxxxxxxxxxx";
- */
+/* Configure only the Paystack PUBLIC key below. Never put a secret key in this repository. */
 (function () {
-  "use strict";
-
-  const PAYSTACK_PUBLIC_KEY = "pk_test_REPLACE_WITH_YOUR_PAYSTACK_PUBLIC_KEY";
-  const MINIMUM_DONATION_NAIRA = 100;
-
-  function showFeedback(form, message, type) {
-    let feedback = form.querySelector(".donation-feedback");
-    if (!feedback) {
-      feedback = document.createElement("div");
-      feedback.className = "donation-feedback mb-3";
-      feedback.setAttribute("aria-live", "polite");
-      form.prepend(feedback);
+  'use strict';
+  const PAYSTACK_PUBLIC_KEY = ''; // Add the approved foundation's pk_live_... public key here.
+  const enabled = /^pk_live_[a-zA-Z0-9]+$/.test(PAYSTACK_PUBLIC_KEY);
+  const causes = {
+    vocational: 'Vocational Skills Training', business: 'Entrepreneurship Support',
+    education: 'Education & Literacy', digital: 'ICT & Digital Skills',
+    health: 'Health & Wellbeing', advocacy: 'Gender Rights & Advocacy', general: 'General Fund'
+  };
+  let sdk;
+  function loadCheckout() {
+    if (!sdk) sdk = new Promise(function (resolve, reject) {
+      if (window.PaystackPop) { resolve(window.PaystackPop); return; }
+      const script = document.createElement('script');
+      script.src = 'https://js.paystack.co/v2/inline.js';
+      script.onload = function () { window.PaystackPop ? resolve(window.PaystackPop) : reject(new Error('Checkout unavailable')); };
+      script.onerror = function () { script.remove(); reject(new Error('Checkout unavailable')); };
+      document.head.appendChild(script);
+    }).catch(function (error) { sdk = undefined; throw error; });
+    return sdk;
+  }
+  document.querySelectorAll('.donation-form').forEach(function (form) {
+    const submit = form.querySelector('[type="submit"]');
+    const feedback = form.querySelector('.donation-feedback');
+    const custom = form.elements.custom_amount;
+    const radios = form.querySelectorAll('[name="amount"]');
+    const params = new URLSearchParams(window.location.search);
+    function show(message, error) {
+      feedback.textContent = message;
+      feedback.classList.toggle('error', !!error);
+      feedback.hidden = false;
     }
-
-    feedback.innerHTML = `<div class="alert alert-${type} mb-0" role="alert">${message}</div>`;
-  }
-
-  function clearFeedback(form) {
-    const feedback = form.querySelector(".donation-feedback");
-    if (feedback) feedback.innerHTML = "";
-  }
-
-  function getFieldValue(form, selector) {
-    const field = form.querySelector(selector);
-    return field ? field.value.trim() : "";
-  }
-
-  function getSelectedAmount(form) {
-    const customAmount = Number(getFieldValue(form, '[name="custom_amount"]'));
-    if (customAmount && customAmount > 0) return customAmount;
-
-    const selected = form.querySelector('input[name="amount"]:checked');
-    return selected ? Number(selected.value) : 0;
-  }
-
-  function buildReference() {
-    return `SSWF-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-  }
-
-  function splitName(fullName) {
-    const parts = fullName.trim().split(/\s+/);
-    return {
-      firstName: parts[0] || "Donor",
-      lastName: parts.slice(1).join(" ") || ""
-    };
-  }
-
-  function validateForm(form, donorName, donorEmail, amount) {
-    if (!donorName) {
-      showFeedback(form, "Please enter your full name before donating.", "danger");
-      return false;
+    function restore() {
+      submit.disabled = !enabled;
+      submit.textContent = enabled ? 'Donate securely with Paystack' : 'Card donations unavailable';
     }
-
-    if (!donorEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail)) {
-      showFeedback(form, "Please enter a valid email address so we can process your receipt.", "danger");
-      return false;
+    if (Object.prototype.hasOwnProperty.call(causes, params.get('cause'))) form.elements.cause.value = params.get('cause');
+    const initialAmount = Number(params.get('amount'));
+    if (Number.isFinite(initialAmount) && initialAmount >= 100 && initialAmount <= 100000000) {
+      let preset = false;
+      radios.forEach(function (radio) { radio.checked = Number(radio.value) === initialAmount; if (radio.checked) preset = true; });
+      if (!preset) custom.value = initialAmount.toFixed(2);
     }
-
-    if (!amount || amount < MINIMUM_DONATION_NAIRA) {
-      showFeedback(form, `Please enter a donation amount of at least ₦${MINIMUM_DONATION_NAIRA.toLocaleString()}.`, "danger");
-      return false;
-    }
-
-    if (PAYSTACK_PUBLIC_KEY.includes("REPLACE_WITH")) {
-      showFeedback(
-        form,
-        "Paystack is connected, but the public key has not been added yet. Replace the placeholder key in js/paystack-donation.js with the foundation's Paystack public key.",
-        "warning"
-      );
-      return false;
-    }
-
-    if (!(window.PaystackPop || window.Paystack)) {
-      showFeedback(form, "Paystack could not load. Please check your internet connection and try again.", "danger");
-      return false;
-    }
-
-    return true;
-  }
-
-  function initializeDonationForm(form) {
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      clearFeedback(form);
-
-      const donorName = getFieldValue(form, '[name="donor_name"]');
-      const donorEmail = getFieldValue(form, '[name="donor_email"]');
-      const donorPhone = getFieldValue(form, '[name="donor_phone"]');
-      const donationCause = getFieldValue(form, '[name="donation_cause"]') || "General Fund";
-      const donorMessage = getFieldValue(form, '[name="donor_message"]');
-      const amountNaira = getSelectedAmount(form);
-      const amountKobo = Math.round(amountNaira * 100);
-      const donor = splitName(donorName);
-
-      if (!validateForm(form, donorName, donorEmail, amountNaira)) return;
-
-      const submitButton = form.querySelector('button[type="submit"]');
-      const originalButtonText = submitButton ? submitButton.innerHTML : "";
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.innerHTML = "Opening secure payment...";
-      }
-
-      const PaystackConstructor = window.PaystackPop || window.Paystack;
-      const popup = new PaystackConstructor();
-
-      popup.newTransaction({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: donorEmail,
-        amount: amountKobo,
-        currency: "NGN",
-        firstName: donor.firstName,
-        lastName: donor.lastName,
-        phone: donorPhone,
-        reference: buildReference(),
-        metadata: {
-          donor_name: donorName,
-          donation_cause: donationCause,
-          donor_message: donorMessage,
-          source_page: form.getAttribute("data-payment-page") || window.location.pathname,
-          custom_fields: [
-            {
-              display_name: "Donation Cause",
-              variable_name: "donation_cause",
-              value: donationCause
-            },
-            {
-              display_name: "Donor Phone",
-              variable_name: "donor_phone",
-              value: donorPhone || "Not provided"
-            }
-          ]
-        },
-        onSuccess: function (transaction) {
-          showFeedback(
-            form,
-            `Thank you, ${donor.firstName}. Your donation was successful. Payment reference: <strong>${transaction.reference}</strong>.`,
-            "success"
-          );
-          form.reset();
-        },
-        onCancel: function () {
-          showFeedback(form, "Payment was cancelled. You can try again whenever you are ready.", "warning");
-        },
-        onError: function (error) {
-          showFeedback(form, `Payment could not be started: ${error.message || "Please try again."}`, "danger");
-        }
-      });
-
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonText;
-      }
+    radios.forEach(function (radio) { radio.addEventListener('change', function () { custom.value = ''; }); });
+    custom.addEventListener('input', function () {
+      if (custom.value !== '') radios.forEach(function (radio) { radio.checked = false; });
     });
-  }
-
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".donation-form").forEach(initializeDonationForm);
+    if (enabled) {
+      document.getElementById('payment-availability').textContent = 'Card payments are handled securely by Paystack. We do not collect or store your card details.';
+      form.querySelector('.small').textContent = 'Checkout opens securely with Paystack. You can also donate by bank transfer.';
+    }
+    restore();
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (!enabled) { show('Card donations are currently unavailable. Please use the bank transfer details or contact our team.', true); return; }
+      if (!form.reportValidity()) return;
+      const selected = form.querySelector('[name="amount"]:checked');
+      const amount = custom.value !== '' ? Number(custom.value) : Number(selected && selected.value);
+      const kobo = Math.round(amount * 100);
+      if (!Number.isFinite(amount) || amount < 100 || !Number.isSafeInteger(kobo)) { show('Please choose or enter an amount of at least ₦100.', true); return; }
+      const data = new FormData(form);
+      const name = data.get('name').trim();
+      if (!name) { show('Please enter your full name.', true); return; }
+      submit.disabled = true;
+      submit.textContent = 'Opening secure checkout…';
+      show('Preparing your secure checkout. Please wait.');
+      try {
+        const Paystack = await loadCheckout();
+        const checkout = new Paystack();
+        checkout.newTransaction({
+          key: PAYSTACK_PUBLIC_KEY, email: data.get('email').trim(), amount: kobo, currency: 'NGN',
+          firstName: name.split(/\s+/)[0], lastName: name.split(/\s+/).slice(1).join(' '),
+          metadata: { donor_name: name, donor_phone: data.get('phone').trim(), donation_cause: causes[data.get('cause')] || causes.general, donor_message: data.get('message').trim() },
+          onSuccess: function (transaction) {
+            restore();
+            if (transaction && transaction.reference) window.location.href = 'thank-you.html?reference=' + encodeURIComponent(transaction.reference);
+            else show('Please check your payment provider for confirmation and contact us for an acknowledgement.');
+          },
+          onCancel: function () { restore(); show('Checkout was closed. You can try again whenever you are ready.'); },
+          onError: function () { restore(); show('Payment could not be completed. Please try again or use bank transfer.', true); }
+        });
+      } catch (_) { restore(); show('Checkout could not load. Please check your connection or use bank transfer.', true); }
+    });
   });
 })();
